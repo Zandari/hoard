@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from app.historical.router import router as historical_router
+from .routers import historical_hoard_control_router
 
 
 @asynccontextmanager
@@ -9,9 +9,9 @@ async def lifespan(app: FastAPI):
     worker = celery_app.Worker()
     worker.start()
     yield
-    #TODO worker.stop
+    worker.stop()
     celery_app.close()
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(historical_router, prefix='/historical')
+app.include_router(historical_hoard_control_router, prefix='/historical')
