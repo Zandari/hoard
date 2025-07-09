@@ -6,8 +6,17 @@ from enum import Enum
 TaskIdType = Annotated[str, Field(min_length=16)]
 
 
-class ExchangeIdentifier(Enum):
+class ExchangeIdentifier(str, Enum):
     OKX = "okx"
+
+    @classmethod
+    def _missing_(cls, value):
+        value_lower = value.lower()
+        for member in cls:
+            if member.value.lower() == value_lower:
+                return member
+
+        return None
 
 
 TaskStateType = Literal[
@@ -17,10 +26,24 @@ TaskStateType = Literal[
 ]
 
 
+class TaskStatusProgress(BaseModel):
+    total: int
+    completed: int
+
+
+class TaskStatusErrorDescription(BaseModel):
+    code: int | str
+    message: str
+
+
 class TaskStatus(BaseModel):
-    state: TaskStateType
-    progress: Annotated[int, Field(gt=0, le=100)] | None
     task_id: TaskIdType
+    state: TaskStateType
+    data: TaskStatusProgress | TaskStatusErrorDescription | None
+
+
+class TaskStatusCollection(BaseModel):
+    data: list[TaskStatus]
 
 
 class TaskCreated(BaseModel):

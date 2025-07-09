@@ -6,10 +6,7 @@ from .routers import historical_hoard_control_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     from app.celery import celery_app
-    worker = celery_app.Worker()
-    worker.start()
     yield
-    worker.stop()
     celery_app.close()
 
 
