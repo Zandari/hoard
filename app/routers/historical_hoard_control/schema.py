@@ -22,7 +22,8 @@ class ExchangeIdentifier(str, Enum):
 TaskStateType = Literal[
     "PENDING", "STARTED",
     "RETRY", "SUCCESS",
-    "FAILURE", "REVOKED"
+    "FAILURE", "REVOKED",
+    "PROGRESS"
 ]
 
 

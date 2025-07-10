@@ -60,7 +60,7 @@ class OKXMarketProvider(BaseMarketProvider):
             response = client.get(url=url, params=params)
             response_json: dict = response.json()
 
-        if response_json["code"] != 0:
+        if response_json["code"] != "0":
             raise FetchingError(
                 code=response_json["code"],
                 message=response_json["msg"],

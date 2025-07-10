@@ -46,8 +46,9 @@ async def task_status(task_id: TaskIdType):
     task = AsyncResult(task_id)
 
     data = None
-    if task.state == "PROGRESS":
+    if task.state == "PROGRESS" and task.result is not None:
         data = TaskStatusProgress(**task.result)
+        #data = None
     elif task.state == "FAILURE":
         exc = task.result
         if isinstance(exc, FetchingError):
