@@ -1,0 +1,24 @@
+services:
+  database:
+    container_name: questdb
+    image: questdb/questdb
+    ports:
+      - "8812:8812"
+      - "9000:9000"
+      - "9009:9009"
+    attach: false
+
+  redis:
+    container_name: redis
+    ports:
+      - "6379:6379"
+    image: redis:latest
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      QUESTDB_CONF: http::addr=localhost:9000;username=admin;password=quest;
+    ports:
+      - 8080:8080
