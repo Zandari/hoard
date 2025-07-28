@@ -1,9 +1,9 @@
 from app.celery import celery_app
 from .data_providers import OKXMarketProvider
 from .data_providers.utils import get_candlestick_period_from_string
+from .database_repository.factory import RepositoryFactory
 from datetime import datetime
 from app.config import Config
-from questdb.ingress import Sender, TimestampNanos
 
 
 @celery_app.task(bind=True)
@@ -41,22 +41,24 @@ def fetch_historical_data_task(
 
     self.update_state(state="PROGRESS", meta=progress_state_meta)
 
-    with Sender.from_conf(Config.QUESTDB_CONF) as sender:
+    database_repository = RepositoryFactory.make_repository_from_url(
+        url=Config.DATABASE_URL,
+        table_name=Config.MARKET_DATA_TABLE_NAME,
+    )
+    with database_repository as db_repo:
         for candlestick in candlestick_generator:
-            sender.row(
-                "market_data",
-                symbols={
-                    "exchange": exchange_identifier.upper(),
-                    "instrument": instrument_identifier.upper(),
-                    "period": candlestick_period.value.id.upper(),
-                },
-                columns={
-                    "open_price": candlestick.open_price,
-                    "highest_price": candlestick.highest_price,
-                    "lowest_price": candlestick.lowest_price,
-                    "close_price": candlestick.close_price,
-                },
-                at=TimestampNanos(candlestick.timestamp_ms * 1000 * 1000),
+            db_repo.insert_candlestick(
+                exchange_identifier=exchange_identifier,
+                instrument_identifier=instrument_identifier,
+                timestamp_dt=datetime.utcfromtimestamp(
+                    candlestick.timestamp_ms / 1000.0
+                ),
+                period=candlestick_period.value.id,
+                open_price=candlestick.open_price,
+                highest_price=candlestick.highest_price,
+                lowest_price=candlestick.lowest_price,
+                close_price=candlestick.close_price,
             )
+
             progress_state_meta["completed"] += 1
             self.update_state(state="PROGRESS", meta=progress_state_meta)

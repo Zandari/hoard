@@ -1,5 +1,6 @@
 import typing
 import httpx
+from time import sleep
 from math import ceil
 from datetime import datetime
 from .common import CandlestickPeriod, Candlestick
@@ -8,6 +9,11 @@ from .exceptions import FetchingError
 
 
 class OKXMarketProvider(BaseMarketProvider):
+    TIMEOUT = 30
+    RETRY_LIMIT = 3
+    RETRY_TIMEOUT = 5
+
+
     def _get_http_client(self) -> httpx.Client:
         return httpx.Client()
 
@@ -56,9 +62,19 @@ class OKXMarketProvider(BaseMarketProvider):
 
     def _perform_request(self, url: str, params: dict[str, typing.Any]) -> dict:
         # raises FetchingError, httpx.HTTPError, JSONDecodeError
-        with self._get_http_client() as client:
-            response = client.get(url=url, params=params)
-            response_json: dict = response.json()
+        response = None
+        retries_count = 0
+        while response is None:
+            try:
+                with self._get_http_client() as client:
+                    response = client.get(url=url, params=params, timeout=self.TIMEOUT)
+                    response.raise_for_status()
+            except httpx.HTTPError as e:
+                if retries_count == self.RETRY_LIMIT: raise e
+                sleep(self.RETRY_TIMEOUT)
+            retries_count += 1
+
+        response_json: dict = response.json()
 
         if response_json["code"] != "0":
             raise FetchingError(

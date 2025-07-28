@@ -1,7 +1,11 @@
 from .base import BaseRepository
 import psycopg2
 from psycopg2 import sql
-from psycopg2.extensions import connection as Connection, cursor as Cursor
+from psycopg2.extensions import (
+    connection as Connection,
+    cursor as Cursor
+)
+from datetime import datetime
 from typing import Optional
 
 
@@ -67,7 +71,7 @@ class PostgresRepository(BaseRepository):
         exchange_identifier: str,
         instrument_identifier: str,
         period: str,
-        timestamp_dt: int,
+        timestamp_dt: datetime,
         open_price: int | float,
         highest_price: int | float,
         lowest_price: int | float,

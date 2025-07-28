@@ -1,10 +1,11 @@
 from celery import Celery
+from app.config import Config
 
 
 celery_app = Celery(
     "hoard",
-    broker='redis://localhost:6379/0',
-    backend='redis://localhost:6379/1',
+    broker=Config.CELERY_BROKER_URL,
+    backend=Config.CELERY_BACKEND_URL,
 )
 
 

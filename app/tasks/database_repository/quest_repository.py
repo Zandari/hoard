@@ -11,10 +11,12 @@ class QuestRepository(BaseRepository):
         port: int | str,
         username: str | None,
         password: str | None,
+        table_name: str,
         protocol: str = "http",
         *args, **kwargs
-    )
+    ):
         self._protocol = protocol
+        self._table_name = table_name
         self._host = host
         self._port = port
         self._username = username
@@ -23,7 +25,6 @@ class QuestRepository(BaseRepository):
         self._sender: None | Sender = None
 
     def __enter__(self) -> typing.Self:
-
         self._sender = Sender(
             protocol=Protocol.parse(self._protocol),
             host=self._host,
@@ -35,10 +36,10 @@ class QuestRepository(BaseRepository):
 
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(self, *args, **kwargs) -> None:
         assert self._sender is not None, "__enter__ method must be called before __exit"
 
-        self._sender.__exit__()
+        self._sender.__exit__(*args, **kwargs)
 
     def insert_candlestick(
         self,
@@ -52,7 +53,7 @@ class QuestRepository(BaseRepository):
         close_price: int | float
     ) -> None:
         self._sender.row(
-            "market_data",
+            self._table_name,
             symbols={
                 "exchange": exchange_identifier.upper(),
                 "instrument": instrument_identifier.upper(),

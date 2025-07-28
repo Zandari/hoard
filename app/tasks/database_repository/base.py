@@ -4,14 +4,7 @@ from datetime import timedelta
 import typing
 
 
-class BaseRepository(ABC, AbstractContextManager):
-
-    @abstractmethod
-    @classmethod
-    def from_url(cls) -> typing.Self:
-        ...
-
-
+class BaseRepository(ABC):
     @abstractmethod
     def insert_candlestick(
         self,
@@ -25,8 +18,8 @@ class BaseRepository(ABC, AbstractContextManager):
     ) -> None:
         ...
 
-    def __enter__(self) -> typing.Self:
-        ...
+    @abstractmethod
+    def __enter__(self) -> typing.Self: ...
 
-    def __exit__(self) -> None:
-        ...
+    @abstractmethod
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None: ...
